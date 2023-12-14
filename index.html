@@ -101,6 +101,22 @@
             <button onclick="addMarker()">Add Marker</button>
         </div>
     </div>
+    <div class="edit-form">
+            <input type="text" id="markerNameEdit" placeholder="Marker Name">
+            <input type="text" id="markerURLEdit" placeholder="Marker URL (optional)">
+            <textarea id="markerDescriptionEdit" placeholder="Marker Description"></textarea>
+            <select name="markerColor" id="markerColorSelect">
+                <option value="#f00">Red</option>
+                <option value="#00f">Blue</option>
+                <option value="#0f0">Green</option>
+                <option value="#ff0">Orange</option>
+                <option value="#00ff">Purple</option>
+                <option value="#000">Black</option>
+            </select>
+            <button onclick="updateMarkerColor()">Update Marker Color</button>
+            <button onclick="toggleMarkerForm()">Close Edit Form</button>
+        </div>
+    </div>
 
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
