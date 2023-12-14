@@ -158,27 +158,100 @@
             });
         });
 
-        function editMarker(markerKey, currentUrl, currentName, currentDescription) {
-            var newName = prompt('Enter New Name', currentName);
-            var newDescription = prompt('Enter New Description', currentDescription);
-            var newUrl = prompt('Enter New URL (optional)', currentUrl);
+        map.on('click', function(e) {
+  // Get the clicked marker
+  var marker = markersRef.child(e.latlng.toString()).once('value').then(function(snapshot) {
+    var markerData = snapshot.val();
+    // Display marker details
+    displayMarkerDetails(markerData);
+  });
+});
 
-            if (newName !== null && newDescription !== null) {
-                const updatedData = {
-                    name: newName,
-                    description: newDescription,
-                    url: newUrl || "",
-                };
-                markersRef.child(markerKey).update(updatedData, function(error) {
-                    if (error) {
-                        alert('Error updating marker: ' + error.message);
-                    } else {
-                        alert('Marker Updated');
-                        location.reload(); // Refresh the page after editing
-                    }
-                });
-            }
-        }
+        function displayMarkerDetails(markerData) {
+  // Get the marker form
+  var markerForm = document.getElementById('markerForm');
+  // Hide the marker form initially
+  markerForm.style.display = 'none';
+
+  // Populate the marker form fields
+  document.getElementById('markerName').value = markerData.name;
+  document.getElementById('markerDescription').value = markerData.description;
+  document.getElementById('markerURL').value = markerData.url;
+
+  // Show the marker form
+  markerForm.style.display = 'block';
+}
+
+        function editMarker(markerKey, currentUrl, currentName, currentDescription) {
+  // Retrieve the updated details from the marker form
+  var updatedName = document.getElementById('markerName').value;
+  var updatedDescription = document.getElementById('markerDescription').value;
+  var updatedUrl = document.getElementById('markerURL').value;
+
+  // Create the updated markerData object
+  var updatedMarkerData = {
+    coordinates: markerData.coordinates,
+    name: updatedName,
+    description: updatedDescription,
+    url: updatedUrl || "",
+    locked: markerData.locked
+  };
+
+  // Update the marker data in Firebase
+  markersRef.child(markerKey).update(updatedMarkerData, function(error) {
+    if (error) {
+      alert('Error updating marker: ' + error.message);
+    } else {
+      alert('Marker Updated');
+      location.reload(); // Refresh the page after editing
+    }
+  });
+}
+
+        function toggleMarkerForm() {
+  var markerForm = document.getElementById('markerForm');
+  markerForm.style.display = markerForm.style.display === 'none' ? 'block' : 'none';
+
+  // Reset marker form fields when toggling
+  document.getElementById('markerName').value = '';
+  document.getElementById('markerDescription').value = '';
+  document.getElementById('markerURL').value = '';
+}
+
+        
+        function searchMarkers() {
+  // Clear existing markers from the map
+  map.eachLayer(function (layer) {
+    if (layer instanceof L.Marker) {
+      map.removeLayer(layer);
+    }
+  });
+
+  // Search for markers based on the search term
+  markersRef.once('value', function(snapshot) {
+    snapshot.forEach(function(childSnapshot) {
+      var markerData = childSnapshot.val();
+      // Display marker details if the search term matches
+      if (markerData.name.toLowerCase().includes(searchTerm) || markerData.description.toLowerCase().includes(searchTerm)) {
+        var marker = L.marker([markerData.coordinates.lat, markerData.coordinates.lng])
+        .addTo(map)
+        .bindPopup(`
+          <div style="text-align: center; font-weight: bold;">${markerData.name}</div>
+          <span class="math-inline">\{markerData\.description\}<br\>
+<button onclick\="editMarker\('</span>{childSnapshot.key}', '<span class="math-inline">\{markerData\.url\}', '</span>{markerData.name}', '<span class="math-inline">\{markerData\.description\}'\)"\>Edit</button\>
+<button onclick\="deleteMarker\('</span>{childSnapshot.key}')">Delete</button>
+          <button onclick="displayMarkerDetails(markerData)">View Details</button>
+        `
+        );
+        // Display marker details when clicked
+        marker.on('click', function(e) {
+          displayMarkerDetails(markerData);
+        });
+      }
+    });
+  });
+}
+
 
         function deleteMarker(markerKey) {
             if (confirm('Are you sure you want to delete this marker?')) {
@@ -289,4 +362,3 @@
     </script>
 </body>
 </html>
-
