@@ -357,25 +357,26 @@ var drawnItems = new L.FeatureGroup();
 map.addLayer(drawnItems);
 
 var drawControl = new L.Control.Draw({
-    draw: {
-        polygon: false,
-        polyline: false,
-        rectangle: false,
-        circle: false,
-        marker: true  // Enable marker (point) drawing
-    },
-    edit: {
-        featureGroup: drawnItems,
-        remove: true
-    }
+  draw: {
+    polygon: false,
+    polyline: false,
+    rectangle: false,
+    circle: false,
+    marker: true // Enable marker (point) drawing
+  },
+  edit: {
+    featureGroup: drawnItems,
+    remove: true
+  }
 });
 
 map.addControl(drawControl);
 
 map.on(L.Draw.Event.CREATED, function (event) {
-    var layer = event.layer;
-    drawnItems.addLayer(layer);
+  var layer = event.layer;
+  drawnItems.addLayer(layer);
 });
+
 
 
         // Event listener for color picker change
