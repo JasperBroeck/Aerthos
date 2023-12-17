@@ -3,6 +3,8 @@
 <head>
     <title>Aerthos - Dungeons & Dragons - Fantasy Map</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <style>
         body {
             background-color: #392e24; /* Dark brown background color */
@@ -84,6 +86,27 @@
             font-family: 'IM Fell English', serif;
             color: #392e24; /* Dark brown text color */
         }
+        #drawing-tools {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #4a3f33;
+            padding: 10px;
+            box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5);
+            border-radius: 5px;
+            z-index: 1000;
+        }
+
+        #color-sliders {
+            margin-top: 10px;
+        }
+
+        .color-slider {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+
     </style>
     <!-- Include Google Fonts for a medieval look -->
     <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English&display=swap" rel="stylesheet">
@@ -299,9 +322,60 @@
             font-weight: 300;
         }
     </style>
+    <div id="drawing-tools">
+        <button id="start-drawing">Start Drawing</button>
+        <button id="stop-drawing">Stop Drawing</button>
+        <div id="color-sliders">
+            <label for="alpha-slider">Alpha:</label>
+            <div id="alpha-slider" class="color-slider"></div>
+            <label for="red-slider">Red:</label>
+            <div id="red-slider" class="color-slider"></div>
+            <label for="green-slider">Green:</label>
+            <div id="green-slider" class="color-slider"></div>
+            <label for="blue-slider">Blue:</label>
+            <div id="blue-slider" class="color-slider"></div>
+        </div>
+    </div>
 </body>
 </html>
-        // ... (Your existing JavaScript code) ...
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script>
+        var drawnItems = new L.FeatureGroup();
+        map.addLayer(drawnItems);
+
+        var drawControl = new L.Control.Draw({
+            edit: {
+                featureGroup: drawnItems
+            }
+        });
+        map.addControl(drawControl);
+
+        // Initialize color sliders using jQuery UI
+        $(function () {
+            $(".color-slider").slider({
+                min: 0,
+                max: 255,
+                value: 255,
+                slide: updateColor,
+                change: updateColor
+            });
+        });
+
+        function updateColor() {
+            var alpha = $("#alpha-slider").slider("value") / 255;
+            var red = $("#red-slider").slider("value");
+            var green = $("#green-slider").slider("value");
+            var blue = $("#blue-slider").slider("value");
+            var color = `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+            // Use the color variable as needed (e.g., for setting the drawing tool color)
+            console.log("Selected Color:", color);
+        }
     </script>
+
 </body>
 </html>
