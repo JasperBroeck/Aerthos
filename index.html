@@ -323,73 +323,68 @@
         }
     </style>
     <div id="drawing-tools">
-        <button id="start-drawing">Start Drawing</button>
-        <button id="stop-drawing">Stop Drawing</button>
-        <div id="color-sliders">
-            <!-- Color picker input for a color wheel and alpha -->
-            <input type="color" id="color-picker" value="#ff0000">
-            <label for="alpha-slider">Alpha:</label>
-            <input type="range" id="alpha-slider" class="color-slider" min="0" max="1" step="0.01" value="1">
-        </div>
+    <button id="start-drawing">Start Drawing</button>
+    <button id="stop-drawing">Stop Drawing</button>
+    <div id="color-sliders">
+      <input type="color" id="color-picker" value="#ff0000">
+      <label for="alpha-slider">Alpha:</label>
+      <input type="range" id="alpha-slider" class="color-slider" min="0" max="1" step="0.01" value="1">
     </div>
-</body>
-</html>
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.4.js"></script>
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-    <script>
-        var map = L.map('map', {
-    crs: L.CRS.Simple,
-    minZoom: -3
-}).setView([0, 0], 2);
+  </div>
 
-// Your existing map initialization code here
+  <div id="map"></div>
 
-// Initialize color picker
-var colorPicker = document.getElementById('color-picker');
-var alphaSlider = document.getElementById('alpha-slider');
+  <script>
+    var map = L.map('map', {
+      crs: L.CRS.Simple,
+      minZoom: -3
+    }).setView([0, 0], 2);
 
-// Initialize drawing tools
-var drawnItems = new L.FeatureGroup();
-map.addLayer(drawnItems);
+    // Initialize color picker
+    var colorPicker = document.getElementById('color-picker');
+    var alphaSlider = document.getElementById('alpha-slider');
 
-var drawControl = new L.Control.Draw({
-  draw: {
-    polygon: false,
-    polyline: false,
-    rectangle: false,
-    circle: false,
-    marker: true // Enable marker (point) drawing
-  },
-  edit: {
-    featureGroup: drawnItems,
-    remove: true
-  }
-});
+    // Initialize drawing tools
+    var drawnItems = new L.FeatureGroup();
+    map.addLayer(drawnItems);
 
-map.addControl(drawControl);
+    var drawControl = new L.Control.Draw({
+      draw: {
+        polygon: false,
+        polyline: false,
+        rectangle: false,
+        circle: false,
+        marker: true
+ 
+// Enable marker (point) drawing
+      },
+      edit: {
+        featureGroup: drawnItems,
+        remove: true
+      }
+    });
 
-map.on(L.Draw.Event.CREATED, function (event) {
-  var layer = event.layer;
-  drawnItems.addLayer(layer);
-});
+    map.addControl(drawControl);
 
+    map.on(L.Draw.Event.CREATED, function (event) {
+      var layer = event.layer;
+      drawnItems.addLayer(layer);
+    });
 
+    // Your existing map initialization code here
 
-        // Event listener for color picker change
-        colorPicker.addEventListener('input', updateColor);
+    // Event listeners for color picker change
+    colorPicker.addEventListener('input', updateColor);
 
-        // Event listener for alpha slider change
-        alphaSlider.addEventListener('input', updateColor);
+    // Event listeners for alpha slider change
+    alphaSlider.addEventListener('input', updateColor);
 
-        function updateColor() {
-            var alpha = alphaSlider.value;
-            var color = colorPicker.value;
-            var rgbaColor = hexToRgbA(color, alpha);
-            // Use rgbaColor as needed (e.g., for setting the drawing tool color)
+    function updateColor() {
+      var alpha = alphaSlider.value;
+      var color = colorPicker.value;
+      var rgbaColor = hexToRgbA(color, alpha);
+
+      // Use rgbaColor as needed (e.g.
             console.log("Selected Color:", rgbaColor);
         }
 
