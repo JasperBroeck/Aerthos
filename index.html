@@ -341,16 +341,19 @@
     <script src="https://code.jquery.com/jquery-3.6.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script>
-        var map = L.map('map').setView([0, 0], 2);
+        var map = L.map('map', {
+    crs: L.CRS.Simple,
+    minZoom: -3
+}).setView([0, 0], 2);
 
-        // Your existing map initialization code here
+// Your existing map initialization code here
 
-        // Initialize color picker
-        var colorPicker = document.getElementById('color-picker');
-        var alphaSlider = document.getElementById('alpha-slider');
+// Initialize color picker
+var colorPicker = document.getElementById('color-picker');
+var alphaSlider = document.getElementById('alpha-slider');
 
-        // Initialize drawing tools
-        var drawnItems = new L.FeatureGroup();
+// Initialize drawing tools
+var drawnItems = new L.FeatureGroup();
 map.addLayer(drawnItems);
 
 var drawControl = new L.Control.Draw({
@@ -373,6 +376,7 @@ map.on(L.Draw.Event.CREATED, function (event) {
     var layer = event.layer;
     drawnItems.addLayer(layer);
 });
+
 
         // Event listener for color picker change
         colorPicker.addEventListener('input', updateColor);
