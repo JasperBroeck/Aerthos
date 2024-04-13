@@ -140,21 +140,11 @@
             minZoom: -3
         });
 
-        // Define your gridded map layer
-        var gridLayer = L.tileLayer('https://07cdd894c5.cbaul-cdnwnd.com/e690af9778bac60d56a3bec003c4029c/200000062-38c0438c07/Aerthos_With-Names%20%281%29-1.webp?ph=07cdd894c5', {
-            maxZoom: 19,
-            attribution: 'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
-        });
+        var imageUrl = 'https://07cdd894c5.cbaul-cdnwnd.com/e690af9778bac60d56a3bec003c4029c/200000048-940a7940a9/MAPAERTHOS.webp';
+        var imageBounds = [[0, 0], [4069, 5425]];
+        L.imageOverlay(imageUrl, imageBounds).addTo(map);
 
-        // Create a layer control to toggle between the base map and the gridded map
-        var baseMaps = {
-            "Gridded Map": gridLayer,
-            "Fantasy Map": L.imageOverlay('https://07cdd894c5.cbaul-cdnwnd.com/e690af9778bac60d56a3bec003c4029c/200000048-940a7940a9/MAPAERTHOS.webp?ph=07cdd894c5', [[0, 0], [4069, 5425]])
-        };
-
-        L.control.layers(baseMaps).addTo(map);
-
-        map.fitBounds([[0, 0], [4069, 5425]]);
+        map.fitBounds(imageBounds);
 
         var markersRef = database.ref('markers');
 
@@ -302,7 +292,6 @@
                 });
             });
         }
-        // Your existing code...
     </script>
     <style>
         .roboto-font {
@@ -310,5 +299,9 @@
             font-weight: 300;
         }
     </style>
+</body>
+</html>
+        // ... (Your existing JavaScript code) ...
+    </script>
 </body>
 </html>
