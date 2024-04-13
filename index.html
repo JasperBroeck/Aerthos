@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Aerthos - Dungeons & Dragons - Fantasy Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        body {
+            background-color: #392e24; /* Dark brown background color */
+            font-family: 'IM Fell English', serif; /* Medieval-looking font */
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            width: 100%;
+            height: 800px;
+            border: 10px solid #8b4513; /* Brown border */
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); /* Shadow effect */
+        }
+
+        #sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 300px;
+            height: 100%;
+            background-color: #4a3f33; /* Dark brown sidebar background color */
+            padding: 20px;
+            box-shadow: 5px 0 10px rgba(0, 0, 0, 0.5);
+            color: #e6d2ac; /* Beige text color */
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        #addMarkerBtn {
+            background-color: #8b4513;
+            color: #fff;
+            padding: 20px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 24px;
+            border: 2px solid #e6d2ac; /* Beige border */
+        }
+
+        #markerForm {
+            margin-top: 20px;
+        }
+
+        #markerForm input,
+        #markerForm textarea,
+        #markerForm button {
+            margin-bottom: 10px;
+            padding: 8px;
+            font-size: 16px;
+            border: 2px solid #8b4513;
+            background-color: #4a3f33;
+            color: #e6d2ac;
+            border-radius: 4px;
+        }
+
+        .edit-form {
+            display: none;
+        }
+
+        .edit-form input,
+        .edit-form textarea,
+        .edit-form button {
+            margin-bottom: 10px;
+            padding: 8px;
+            font-size: 16px;
+            border: 2px solid #8b4513;
+            background-color: #4a3f33;
+            color: #e6d2ac;
+            border-radius: 4px;
+        }
+
+        h2 {
+            font-family: 'IM Fell English', serif;
+            color: #e6d2ac;
+        }
+
+        .leaflet-popup-content {
+            font-family: 'IM Fell English', serif;
+            color: #392e24; /* Dark brown text color */
+        }
+    </style>
+    <!-- Include Google Fonts for a medieval look -->
+    <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.17/dist/sweetalert2.all.min.js"></script>
+</head>
+<body>
+    <div id="map"></div>
+
+    <!-- Sidebar menu -->
+    <div id="sidebar">
+        <div id="markerForm">
+            <input type="text" id="markerName" placeholder="Marker Name">
+            <input type="text" id="markerURL" placeholder="Marker URL (optional)">
+            <textarea id="markerDescription" placeholder="Marker Description"></textarea>
+            <button onclick="addMarker()">Add Marker</button>
+        </div>
+    </div>
+    <div class="edit-form">
+            <input type="text" id="markerNameEdit" placeholder="Marker Name">
+            <input type="text" id="markerURLEdit" placeholder="Marker URL (optional)">
+            <textarea id="markerDescriptionEdit" placeholder="Marker Description"></textarea>
+            <select name="markerColor" id="markerColorSelect">
+                <option value="#f00">Red</option>
+                <option value="#00f">Blue</option>
+                <option value="#0f0">Green</option>
+                <option value="#ff0">Orange</option>
+                <option value="#00ff">Purple</option>
+                <option value="#000">Black</option>
+            </select>
+            <button onclick="updateMarkerColor()">Update Marker Color</button>
+            <button onclick="toggleMarkerForm()">Close Edit Form</button>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script>
+        var firebaseConfig = {
+            apiKey: "AIzaSyAPzWO0G9LGLvox5VTgYEX3fJ1B2cnJ_6s",
+            authDomain: "fantasy-802c9.firebaseapp.com",
+            databaseURL: "https://fantasy-802c9-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "fantasy-802c9",
+            storageBucket: "fantasy-802c9.appspot.com",
+            messagingSenderId: "451081110797",
+            appId: "1:451081110797:web:ae639d5e570f8ee7e5dc44",
+        };
+        firebase.initializeApp(firebaseConfig);
+
+        var database = firebase.database();
+
+        var map = L.map('map', {
+            crs: L.CRS.Simple,
+            minZoom: -3
+        });
+
+        // Define your gridded map layer
+        var gridLayer = L.tileLayer('https://07cdd894c5.cbaul-cdnwnd.com/e690af9778bac60d56a3bec003c4029c/200000062-38c0438c07/Aerthos_With-Names%20%281%29-1.webp?ph=07cdd894c5', {
+            maxZoom: 19,
+            attribution: 'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
+        });
+
+        // Create a layer control to toggle between the base map and the gridded map
+        var baseMaps = {
+            "Gridded Map": gridLayer,
+            "Fantasy Map": L.imageOverlay('https://07cdd894c5.cbaul-cdnwnd.com/e690af9778bac60d56a3bec003c4029c/200000048-940a7940a9/MAPAERTHOS.webp?ph=07cdd894c5', [[0, 0], [4069, 5425]])
+        };
+
+        L.control.layers(baseMaps).addTo(map);
+
+        map.fitBounds([[0, 0], [4069, 5425]]);
+
+        var markersRef = database.ref('markers');
+
+        markersRef.on('child_added', function(snapshot) {
+            var markerData = snapshot.val();
+
+            // Set the initial draggable state based on the locked status
+            var draggable = !markerData.locked;
+
+            var marker = L.marker([markerData.coordinates.lat, markerData.coordinates.lng], { draggable: draggable })
+                .addTo(map)
+                .bindPopup(`
+                    <div style="text-align: center; font-weight: bold;">${markerData.name}</div>
+                    ${markerData.description}<br>
+                    <button onclick="editMarker('${snapshot.key}', '${markerData.url}', '${markerData.name}', '${markerData.description}')">Edit</button>
+                    <button onclick="deleteMarker('${snapshot.key}')">Delete</button>
+                    <button onclick="openMarkerURL('${markerData.url}')">Open URL</button>
+                    <button onclick="toggleMarkerLock('${snapshot.key}', ${markerData.locked})">${markerData.locked ? 'Unlock' : 'Lock'}</button>
+                `
+                );
+
+            // Listen for changes to the 'locked' property in Firebase
+            markersRef.child(snapshot.key).child('locked').on('value', function(lockedSnapshot) {
+                var newLockStatus = lockedSnapshot.val();
+                // Update the draggable property of the marker based on the new lock status
+                marker.setDraggable(!newLockStatus);
+            });
+        });
+
+        function editMarker(markerKey, currentUrl, currentName, currentDescription) {
+            var newName = prompt('Enter New Name', currentName);
+            var newDescription = prompt('Enter New Description', currentDescription);
+            var newUrl = prompt('Enter New URL (optional)', currentUrl);
+
+            if (newName !== null && newDescription !== null) {
+                const updatedData = {
+                    name: newName,
+                    description: newDescription,
+                    url: newUrl || "",
+                };
+                markersRef.child(markerKey).update(updatedData, function(error) {
+                    if (error) {
+                        alert('Error updating marker: ' + error.message);
+                    } else {
+                        alert('Marker Updated');
+                        location.reload(); // Refresh the page after editing
+                    }
+                });
+            }
+        }
+
+        function deleteMarker(markerKey) {
+            if (confirm('Are you sure you want to delete this marker?')) {
+                markersRef.child(markerKey).remove(function(error) {
+                    if (error) {
+                        alert('Error deleting marker: ' + error.message);
+                    } else {
+                        alert('Marker Deleted');
+                        location.reload(); // Refresh the page after deleting
+                    }
+                });
+            }
+        }
+
+        function openMarkerURL(url) {
+            if (url) {
+                window.open(url, '_blank');
+            } else {
+                alert('URL is not available for this marker.');
+            }
+        }
+
+        function toggleMarkerLock(markerKey, currentLockStatus) {
+            const newLockStatus = !currentLockStatus;
+
+            markersRef.child(markerKey).update({ locked: newLockStatus }, function(error) {
+                if (error) {
+                    alert('Error updating marker lock status: ' + error.message);
+                } else {
+                    alert(newLockStatus ? 'Marker Locked' : 'Marker Unlocked');
+                    
+                    // Reload the page after a brief delay (e.g., 1000 milliseconds or 1 second)
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1000);
+                }
+            });
+        }
+
+        function addMarker() {
+            var markerName = document.getElementById('markerName').value;
+            var markerDescription = document.getElementById('markerDescription').value;
+
+            if (markerName && markerDescription) {
+                var newMarkerData = {
+                    coordinates: { lat: 0, lng: 0 }, // Set initial coordinates
+                    name: markerName,
+                    description: markerDescription,
+                    url: "",
+                    locked: false
+                };
+
+                markersRef.push(newMarkerData, function(error) {
+                    if (error) {
+                        alert('Error adding marker: ' + error.message);
+                    } else {
+                        alert('Marker Added');
+                        location.reload(); // Refresh the page after adding
+                    }
+                });
+            } else {
+                alert('Please enter both marker name and description.');
+            }
+        }
+
+        function toggleMarkerForm() {
+            var markerForm = document.getElementById('markerForm');
+            markerForm.style.display = markerForm.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function searchMarkers() {
+            var searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+            // Clear existing markers from the map
+            map.eachLayer(function (layer) {
+                if (layer instanceof L.Marker) {
+                    map.removeLayer(layer);
+                }
+            });
+
+            markersRef.once('value', function(snapshot) {
+                snapshot.forEach(function(childSnapshot) {
+                    var markerData = childSnapshot.val();
+                    if (markerData.name.toLowerCase().includes(searchTerm) || markerData.description.toLowerCase().includes(searchTerm)) {
+                        var marker = L.marker([markerData.coordinates.lat, markerData.coordinates.lng])
+                            .addTo(map)
+                            .bindPopup(`
+                                <div style="text-align: center; font-weight: bold;">${markerData.name}</div>
+                                ${markerData.description}<br>
+                                <button onclick="editMarker('${childSnapshot.key}', '${markerData.url}', '${markerData.name}', '${markerData.description}')">Edit</button>
+                                <button onclick="deleteMarker('${childSnapshot.key}')">Delete</button>
+                            `
+                            );
+                    }
+                });
+            });
+        }
+        // Your existing code...
+    </script>
+    <style>
+        .roboto-font {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 300;
+        }
+    </style>
+</body>
+</html>
